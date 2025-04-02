@@ -1,11 +1,15 @@
 package com.redveloper.stock_market.data.repository
 
 import com.redveloper.stock_market.data.csv.CSVParser
+import com.redveloper.stock_market.data.csv.IntradayInfoParser
 import com.redveloper.stock_market.data.local.StockDatabaes
+import com.redveloper.stock_market.data.mapper.toCompanyInfo
 import com.redveloper.stock_market.data.mapper.toCompanyListing
 import com.redveloper.stock_market.data.mapper.toCompanyListingEntity
 import com.redveloper.stock_market.data.remote.StockApi
+import com.redveloper.stock_market.domain.model.CompanyInfo
 import com.redveloper.stock_market.domain.model.CompanyListing
+import com.redveloper.stock_market.domain.model.IntradayInfo
 import com.redveloper.stock_market.domain.repository.StockRepository
 import com.redveloper.stock_market.util.Resource
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +23,8 @@ import javax.inject.Singleton
 class StockRepositoryImpl @Inject constructor(
     private val api: StockApi,
     private val db: StockDatabaes,
-    private val companyListingsParser: CSVParser<CompanyListing>
+    private val companyListingsParser: CSVParser<CompanyListing>,
+    private val intradayInfoParser: CSVParser<IntradayInfo>,
 ): StockRepository {
 
     private val dao = db.dao
@@ -67,6 +72,34 @@ class StockRepositoryImpl @Inject constructor(
 
                 emit(Resource.Loading(false))
             }
+        }
+    }
+
+    override suspend fun getIntradayInfo(symbol: String): Resource<List<IntradayInfo>> {
+        return try {
+            val response = api.getIntradayInfo(symbol)
+            Resource.Success(intradayInfoParser.parse(response.byteStream()))
+        }
+        catch (e: IOException){
+            e.printStackTrace()
+            Resource.Error("couldn't load data")
+        }
+        catch (e: HttpException){
+            Resource.Error("couldn't load data")
+        }
+    }
+
+    override suspend fun getCompanyInfo(symbol: String): Resource<CompanyInfo> {
+        return try {
+            val result = api.getCompanyInfo(symbol)
+            Resource.Success(result.toCompanyInfo())
+        }
+        catch (e: IOException){
+            e.printStackTrace()
+            Resource.Error("couldn't load data")
+        }
+        catch (e: HttpException){
+            Resource.Error("couldn't load data")
         }
     }
 }

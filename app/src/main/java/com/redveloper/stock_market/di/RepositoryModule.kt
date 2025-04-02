@@ -2,8 +2,10 @@ package com.redveloper.stock_market.di
 
 import com.redveloper.stock_market.data.csv.CSVParser
 import com.redveloper.stock_market.data.csv.CompanyListingsParser
+import com.redveloper.stock_market.data.csv.IntradayInfoParser
 import com.redveloper.stock_market.data.repository.StockRepositoryImpl
 import com.redveloper.stock_market.domain.model.CompanyListing
+import com.redveloper.stock_market.domain.model.IntradayInfo
 import com.redveloper.stock_market.domain.repository.StockRepository
 import dagger.Binds
 import dagger.Module
@@ -26,4 +28,10 @@ abstract class RepositoryModule {
     abstract fun bindStockRepository(
         stockRepositoryImpl: StockRepositoryImpl
     ): StockRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindIntradayInfoParser(
+        intradayInfoParser: IntradayInfoParser
+    ): CSVParser<IntradayInfo>
 }
